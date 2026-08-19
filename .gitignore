@@ -1,0 +1,22 @@
+# dependencies
+backend/node_modules
+frontend/node_modules
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.env
+backend/.env
+frontend/.env
+gcs-key.json
+backend/gcs-key.json
+gcs-key.base64
+backend/gcs-key.base64
+.vercel/
+vercel.json
+
+

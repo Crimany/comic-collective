@@ -1,0 +1,29 @@
+.pageContainer {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.leftHalf {
+  display: flex;
+  flex: 1;
+  background-color: #c0c0c0;
+  justify-content: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  max-width: 80%;
+  height: auto;
+}
+
+.rightHalf {
+  display: flex;
+  flex: 1;
+  background-color: #f8f9fa;
+  color: #004085;
+  justify-content: center;
+  align-items: center;
+}
+ 

@@ -1,0 +1,229 @@
+.controlsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filterControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.bookCard {
+  background-color: #c0c0c0;
+  color: #004085;
+  border: 1px solid #e0e0e0;
+  border-radius: 28px;
+  border-color: #004085;
+  border-style: solid;
+  border-width: 4px;
+  padding: 1.5rem;
+  width: 80%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 14px 18px rgba(0, 0, 0, 1.1);
+  gap: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bookCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bookCardTitle {
+  width: 100%;
+  text-align: center;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.bookCardTitle h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.bookCardContent {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start; /* Aligns items to the top */
+  flex-wrap: nowrap; /* Prevents the details section from wrapping below the cover */
+  gap: 1.5rem;
+}
+
+.coverArtSection {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.coverArtSection img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0px;
+  border: 1px solid #ddd;
+}
+
+.coverArt {
+    width: 100%;
+    height: auto;
+    border-radius: 0px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+}
+
+.coverArt:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.detailsSection {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Allows the section to shrink and prevent overflow */
+  justify-content: space-between; /* Pushes buttons to the bottom if there's space */
+}
+
+.detailsSection p {
+    margin: 0 0 0.5rem 0;
+}
+
+.tagsDisplay {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  background-color: #e0e0e0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+}
+
+.tagsSection {
+  margin-top: 1rem;
+}
+
+.tagInputContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tagInputContainer input {
+  flex-grow: 1;
+}
+
+.inventorySection {
+    border-top: 1px solid #eee;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+.lowInventoryWarning {
+    color: red;
+    font-weight: bold;
+}
+
+.inventoryRow {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.staticField {
+    padding: 0.5rem;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.bookContainer {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* cover art overlay */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.overlayClose {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    line-height: 1;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    z-index: 1001;
+}
+
+.overlayClose:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.overlayImg {
+    height: 75vh;
+    width: auto;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    display: block;
+}
