@@ -26,3 +26,6 @@ router.route('/:id')
 router.route('/:id/upload-cover').post(protect, employee, upload.single('coverArtFile'), uploadCover);
 
 module.exports = router;
+
+
+
