@@ -17,6 +17,6 @@ backend/gcs-key.json
 gcs-key.base64
 backend/gcs-key.base64
 .vercel/
-vercel.json
+
 
 

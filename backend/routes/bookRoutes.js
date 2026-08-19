@@ -27,5 +27,3 @@ router.route('/:id/upload-cover').post(protect, employee, upload.single('coverAr
 
 module.exports = router;
 
-
-
