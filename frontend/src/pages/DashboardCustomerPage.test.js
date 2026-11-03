@@ -10,7 +10,7 @@ jest.mock('../api');
 
 // Mock the localStorage
 const mockUserInfo = {
-  name: 'Test User',
+  email: 'test@example.com',
   token: 'fake-token',
 };
 Storage.prototype.getItem = jest.fn(() => JSON.stringify(mockUserInfo));

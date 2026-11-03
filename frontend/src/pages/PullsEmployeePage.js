@@ -237,7 +237,7 @@ const PullsEmployeePage = () => {
                     />
                   </div>
                   <div className={bookCards.detailsSection}>
-                    <p><strong>Customer:</strong> <Link to={`/custedit/${item.userId}`}>{item.userName}</Link></p>
+                    <p><strong>Customer:</strong> <Link to={`/custedit/${item.userId}`}>{item.userEmail}</Link></p>
                     <p><strong>Publisher:</strong> {item.bookId.publisher || 'N/A'}</p>
                     <p><strong>Release Date:</strong> {formatDate(item.bookId.releaseDate)}</p>
                     <p><strong>Pull Status: </strong> 

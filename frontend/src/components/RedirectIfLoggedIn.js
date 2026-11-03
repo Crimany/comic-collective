@@ -1,8 +1,9 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { getUserInfo } from '../auth';
 
 const RedirectIfLoggedIn = ({ children }) => {
-  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  const userInfo = getUserInfo();
 
   if (userInfo) {
     if (userInfo.role === 'employee') {

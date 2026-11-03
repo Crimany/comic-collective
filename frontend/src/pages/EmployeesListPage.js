@@ -45,6 +45,21 @@ function EmployeesListPage() {
     }
   };
 
+  const handleResendEmail = async (id) => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+      const { data } = await api.post(`/api/users/${id}/send-login-link`, {}, config);
+      alert(data.message);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to send email');
+    }
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
@@ -72,18 +87,17 @@ function EmployeesListPage() {
         {users.map((user) => (
           <div key={user._id} className={userCards.userCard}>
             <div className={userCards.userCardTitle}>
-              <h2>{user.name}</h2>
+              <h2>{user.email}</h2>
             </div>
             <div className={userCards.userCardContent}>
               <div className={userCards.detailsRow}>
                 <div className={userCards.detailsSection}>
-                  <p><strong>Email:</strong> {user.email}</p>
                   <p><strong>Status:</strong> {user.status}</p>
                 </div>
               </div>
               <div className={userCards.actionsRow}>
                 <button onClick={() => navigate(`/empledit/${user._id}`)} className={buttons.editButton}>Edit</button>
-                <button onClick={() => navigate(`/admin-reset-password/${user._id}`)} className={buttons.resetButton}>Reset Password</button>
+                <button onClick={() => handleResendEmail(user._id)} className={buttons.resetButton}>Resend Email</button>
                 <button onClick={() => handleStatusChange(user._id, user.status === 'active' ? 'disabled' : 'active')} className={buttons.disableButton}>
                   {user.status === 'active' ? 'Disable' : 'Enable'}
                 </button>

@@ -3,16 +3,13 @@ const router = express.Router();
 const {
   registerUser,
   verifyEmail,
-  forgotPassword,
-  resetPasswordWithToken,
+  resendLoginLink,
   loginUser,
   registerEmployee,
   getUsers,
   getUserById,
   updateUser,
   deleteUser,
-  resetPassword,
-  resetMyPassword,
   getMe,
   addPullRequest,
   dropPullRequest,
@@ -27,10 +24,7 @@ const { protect, employee, customer } = require('../middleware/authMiddleware');
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/verify-email', verifyEmail);
-router.post('/forgot-password', forgotPassword);
-router.put('/reset-password/:token', resetPasswordWithToken);
 router.get('/me', protect, getMe);
-router.put('/me/reset-password', protect, resetMyPassword);
 router.get('/me/recommendation-tags', protect, customer, getRecommendationTags);
 router.get('/pull-list', protect, getUserPullList);
 
@@ -43,7 +37,7 @@ router.route('/:id')
     .get(protect, employee, getUserById)
     .put(protect, employee, updateUser)
     .delete(protect, employee, deleteUser);
-router.put('/:id/reset-password', protect, employee, resetPassword);
+router.post('/:id/send-login-link', protect, employee, resendLoginLink);
 router.put('/pull-list/:pullId/pull', protect, employee, markPullAsPulled);
 router.put('/pull-list/:pullId/purchase', protect, employee, purchasePullRequest);
 

@@ -11,10 +11,9 @@ connectDB();
 const createEmployee = async () => {
   try {
     // --- IMPORTANT: Change these details ---
+    // sign in afterwards by requesting a sign-in link for this email on the login page
     const employeeDetails = {
-      name: 'example',
       email: 'example@noemail.invalid',
-      password: 'P4sSw*rd',
       role: 'employee',
     };
 

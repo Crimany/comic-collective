@@ -15,7 +15,6 @@ function DashboardCustomerPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -26,7 +25,6 @@ function DashboardCustomerPage() {
           setLoading(false);
           return;
         }
-        setUserName(userInfo.name);
 
         const config = {
           headers: {
@@ -175,10 +173,8 @@ function DashboardCustomerPage() {
     return <CustomerLayout title="Dashboard"><div className={global.loadingSpinner} data-testid="loading-spinner"></div></CustomerLayout>;
   }
 
-  const dashboardTitle = userName ? `${userName.split(' ')[0]}'s Dashboard` : 'Dashboard';
-
   return (
-    <CustomerLayout title={dashboardTitle}>
+    <CustomerLayout title="Dashboard">
       {error && <p className={global.error}>{error}</p>}
       <div className={conciergeCards.conciergeGrid}>
         <div className={conciergeCards.conciergeCard}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import global from '../styles/global.module.css';
@@ -8,6 +8,8 @@ function VerifyEmailPage() {
   const [message, setMessage] = useState('Verifying your email...');
   const [error, setError] = useState('');
   const { token } = useParams();
+  // sign-in links are single use, so only submit the token once (StrictMode runs effects twice)
+  const submitted = useRef(false);
 
   useEffect(() => {
     const verify = async () => {
@@ -18,13 +20,24 @@ function VerifyEmailPage() {
 
       try {
         const { data } = await api.post('/api/users/verify-email', { token });
-        setMessage(data.message);
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        setMessage('Email verified successfully! Signing you in...');
+        if (data.role === 'employee') {
+          window.location.href = '/dashempl';
+        } else if (data.role === 'customer') {
+          window.location.href = '/dashcust';
+        } else {
+          window.location.href = '/';
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to verify email.');
       }
     };
 
-    verify();
+    if (!submitted.current) {
+      submitted.current = true;
+      verify();
+    }
   }, [token]);
 
   return (
@@ -37,7 +50,7 @@ function VerifyEmailPage() {
           <h1>Email Verification</h1>
           {error && <p className={global.error}>{error}</p>}
           {message && !error && <p className={global.success}>{message}</p>}
-          <Link to="/login" className={global.link}>Proceed to Login</Link>
+          {error && <Link to="/login" className={global.link}>Back to Sign in</Link>}
         </div>
       </div>
     </div>

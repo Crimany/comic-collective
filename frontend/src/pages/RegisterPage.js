@@ -7,10 +7,7 @@ import form from '../styles/forms.module.css';
 import layout1 from '../styles/layout1.module.css';
 
 function RegisterPage() {
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -18,13 +15,8 @@ function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
     try {
-      const { data } = await api.post('/api/users/register', { name, email, password }); 
+      const { data } = await api.post('/api/users/register', { email }); 
       setSuccess(data.message || 'Registration successful! Please check your email to verify your account.');
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred');
@@ -45,29 +37,9 @@ function RegisterPage() {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className={form.formGroup}>
-                <label htmlFor="name">Name</label>
-                <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="new-password" />
-              </div>
-              <div className={form.formGroup}>
                 <label htmlFor="email">Email</label>
-                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="new-password" />
+                <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
               </div>
-              <div className={form.formGroup}>
-                <label htmlFor="password">Password</label>
-                <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" />
-              </div>
-              <div className={form.formGroup}>
-                <label htmlFor="confirmPassword">Password (again, to confirm)</label>
-                <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password" />
-              </div>
-
-              <p className={global.passwordReqs}>
-                {`Minimum password length is 8 characters and must contain at least one of:
-  - Uppercase letter
-  - Lowercase letter
-  - Number
-  - Symbol`}
-              </p>
 
               <div className={form.formActions}>
                 <button type="submit" className={buttons.submitButton}>Register</button>

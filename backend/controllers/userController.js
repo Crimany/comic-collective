@@ -1,233 +1,159 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 const Book = require('../models/bookModel');
 const sendEmail = require('../utils/email');
 
+// sessions stay valid on a browser until they expire or the user logs out
+const SESSION_LENGTH = '183d';
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+    expiresIn: SESSION_LENGTH,
   });
 };
 
-const passwordIsValid = (password) => {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  return passwordRegex.test(password);
+// Create a new single-use verification token and email the sign-in link to the user
+const sendLoginLink = async (user) => {
+  const verificationToken = user.createEmailVerificationToken();
+  await user.save();
+
+  const verificationURL = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+  const message = `<p>Hi,</p>
+<p>Please click the link below to sign in to Comic Collective on this browser:</p>
+<p><a href="${verificationURL}">${verificationURL}</a></p>
+<p>This link can only be used once and expires in 24 hours.</p>
+<p>If you did not request this, please ignore this email.</p>`;
+
+  await sendEmail({
+    email: user.email,
+    subject: 'Comic Collective - Your Sign-in Link',
+    message,
+  });
+};
+
+// Create a new user with the given role and send them a sign-in link
+const createUserAndSendLink = async (req, res, role) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Please enter an email address' });
+  }
+
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({ message: 'User already exists' });
+  }
+
+  const user = await User.create({ email, role });
+
+  try {
+    await sendLoginLink(user);
+    res.status(201).json({ message: `Registration successful! A verification link has been sent to ${user.email}.` });
+  } catch (err) {
+    res.status(500).json({ message: 'There was an error sending the verification email. Please try again later.' });
+  }
 };
 
 // @desc    Register a new customer
 // @route   POST /api/users/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Please add all fields' });
-  }
-
-  if (!passwordIsValid(password)) {
-    return res.status(400).json({
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-    });
-  }
-
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ message: 'User already exists' });
-  }
-
-  const user = await User.create({ name, email, password, role: 'customer' });
-
-  if (!user) {
-    res.status(400).json({ message: 'Invalid user data' });
-    return;
-  }
-
-  // Create verification token
-  const verificationToken = user.createEmailVerificationToken();
-  await user.save({ validateBeforeSave: false }); // Save with token, skipping password validation
-
-  // Send verification email
-  const verificationURL = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
-  const message = `Hi ${user.name},\nPlease click the link to verify your email address: ${verificationURL}\n\nIf you did not request this, please ignore this email.`;
-
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Comic Collective - Verify Your Email',
-      message,
-    });
-
-    res.status(201).json({ message: 'Registration successful! Please check your email to verify your account.' });
-  } catch (err) {
-    res.status(500).json({ message: 'There was an error sending the verification email. Please try again later.' });
-  }
-});
-
-// @desc    Authenticate a user
-// @route   POST /api/users/login
-// @access  Public
-const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  if (user.status === 'active' && user.isVerified) {
-    res.json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-    });
-  } else if (!user.isVerified) {
-    res.status(401).json({ message: 'Please verify your email before logging in.' });
-  } else if (user && user.status === 'disabled') {
-    res.status(401).json({ message: 'Account is disabled' });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
-  }
-});
-
-// @desc    Verify user email
-// @route   POST /api/users/verify-email
-// @access  Public
-const verifyEmail = asyncHandler(async (req, res) => {
-  const { token } = req.body;
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
-  // First, try to find the user by the hashed token, regardless of expiration or verification status initially.
-  // This allows us to check if the user exists with this token, even if it's expired or they're already verified.
-  const user = await User.findOne({
-    emailVerificationToken: hashedToken,
-  });
-
-  if (!user) {
-    // If no user is found with this token at all, it's an invalid token.
-    return res.status(400).json({ message: 'Token is invalid or has been used.' });
-  }
-
-  // If a user is found with this token
-  if (user.isVerified) {
-    // If the user is already verified, inform them. This handles double-clicks or retries after successful verification.
-    return res.status(200).json({ message: 'Email is already verified!' });
-  }
-
-  if (user.emailVerificationExpires < Date.now()) {
-    // If the token is found but expired, inform them.
-    // Optionally, clear the expired token from the user document to prevent future attempts with it.
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save({ validateBeforeSave: false }); // Save changes to clear expired token
-    return res.status(400).json({ message: 'Token has expired. Please request a new verification email.' });
-  }
-
-  user.isVerified = true;
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpires = undefined;
-  await user.save({ validateBeforeSave: false });
-
-  res.status(200).json({ message: 'Email verified successfully!' });
-});
-
-// @desc    Forgot password
-// @route   POST /api/users/forgot-password
-// @access  Public
-const forgotPassword = asyncHandler(async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) {
-    // Send a generic success response to prevent email enumeration
-    return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
-  }
-
-  const resetToken = user.createPasswordResetToken();
-  await user.save({ validateBeforeSave: false });
-
-  const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-  const message = `Forgot your password? Submit a PUT request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email.`;
-
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token (valid for 10 min)',
-      message,
-    });
-    res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
-  } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-    res.status(500).json({ message: 'There was an error sending the email. Try again later!' });
-  }
-});
-
-// @desc    Reset password with token
-// @route   PUT /api/users/reset-password/:token
-// @access  Public
-const resetPasswordWithToken = asyncHandler(async (req, res) => {
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-  const user = await User.findOne({ passwordResetToken: hashedToken, passwordResetExpires: { $gt: Date.now() } });
-
-  if (!user) {
-    return res.status(400).json({ message: 'Token is invalid or has expired' });
-  }
-
-  const { password } = req.body;
-
-  if (!passwordIsValid(password)) {
-    return res.status(400).json({
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-    });
-  }
-
-  user.password = password;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-  await user.save();
-
-  res.status(200).json({ message: 'Password has been reset successfully.' });
+  await createUserAndSendLink(req, res, 'customer');
 });
 
 // @desc    Register a new employee
 // @route   POST /api/users/register-employee
 // @access  Private/Employee
 const registerEmployee = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  await createUserAndSendLink(req, res, 'employee');
+});
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Please add all fields' });
+// @desc    Email a sign-in link to an existing user
+// @route   POST /api/users/login
+// @access  Public
+const loginUser = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Please enter an email address' });
   }
 
-  if (!passwordIsValid(password)) {
-    return res.status(400).json({
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-    });
+  // Send the same response either way to prevent email enumeration
+  const genericMessage = 'If an active account exists for that email, a sign-in link has been sent to it.';
+  const user = await User.findOne({ email });
+
+  if (!user || user.status !== 'active') {
+    return res.status(200).json({ message: genericMessage });
   }
 
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ message: 'User already exists' });
+  try {
+    await sendLoginLink(user);
+    res.status(200).json({ message: genericMessage });
+  } catch (err) {
+    res.status(500).json({ message: 'There was an error sending the sign-in email. Please try again later.' });
+  }
+});
+
+// @desc    Verify a sign-in link and start a session on this browser
+// @route   POST /api/users/verify-email
+// @access  Public
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: 'No verification token found.' });
   }
 
-  const user = await User.create({ name, email, password, role: 'employee' });
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({ emailVerificationToken: hashedToken });
 
-  if (user) {
-    res.status(201).json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-  } else {
-    res.status(400).json({ message: 'Invalid user data' });
+  if (!user) {
+    return res.status(400).json({ message: 'This link is invalid or has already been used. Please sign in again to get a new link.' });
+  }
+
+  // tokens are single use, so clear it whether or not it has expired
+  const expired = user.emailVerificationExpires < Date.now();
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+
+  if (expired) {
+    await user.save();
+    return res.status(400).json({ message: 'This link has expired. Please sign in again to get a new link.' });
+  }
+
+  if (user.status !== 'active') {
+    await user.save();
+    return res.status(401).json({ message: 'Account is disabled' });
+  }
+
+  user.isVerified = true;
+  await user.save();
+
+  res.status(200).json({
+    _id: user.id,
+    email: user.email,
+    role: user.role,
+    token: generateToken(user._id),
+  });
+});
+
+// @desc    Send a new sign-in link to a user
+// @route   POST /api/users/:id/send-login-link
+// @access  Private/Employee
+const resendLoginLink = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  try {
+    await sendLoginLink(user);
+    res.status(200).json({ message: `A new verification link has been sent to ${user.email}.` });
+  } catch (err) {
+    res.status(500).json({ message: 'There was an error sending the email. Please try again later.' });
   }
 });
 
@@ -235,7 +161,7 @@ const registerEmployee = asyncHandler(async (req, res) => {
 // @route   GET /api/users
 // @access  Private/Employee
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({}).select('-password');
+  const users = await User.find({});
   res.json(users);
 });
 
@@ -243,7 +169,7 @@ const getUsers = asyncHandler(async (req, res) => {
 // @route   GET /api/users/:id
 // @access  Private/Employee
 const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id).select('-password');
+  const user = await User.findById(req.params.id);
 
   if (user) {
     res.json(user);
@@ -260,13 +186,11 @@ const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (user) {
-    user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     user.status = req.body.status || user.status;
     const updatedUser = await user.save();
     res.json({
       _id: updatedUser.id,
-      name: updatedUser.name,
       email: updatedUser.email,
       role: updatedUser.role,
       status: updatedUser.status,
@@ -291,58 +215,11 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Reset a user's password
-// @route   PUT /api/users/:id/reset-password
-// @access  Private/Employee
-const resetPassword = asyncHandler(async (req, res) => {
-  const { password } = req.body;
-  const user = await User.findById(req.params.id);
-
-  if (!passwordIsValid(password)) {
-    return res.status(400).json({
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-    });
-  }
-
-  if (user) {
-    user.password = password;
-    await user.save();
-    res.json({ message: 'Password updated successfully' });
-  } else {
-    res.status(404).json({ message: 'User not found' });
-  }
-});
-
-// @desc    Reset logged-in user's password
-// @route   PUT /api/users/me/reset-password
-// @access  Private
-const resetMyPassword = asyncHandler(async (req, res) => {
-  const { password } = req.body;
-  // The user ID comes from the protect middleware
-  const user = await User.findById(req.user.id);
-
-  if (!passwordIsValid(password)) {
-    return res.status(400).json({
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
-    });
-  }
-
-  if (user) {
-    user.password = password;
-    await user.save();
-    res.json({ message: 'Password updated successfully' });
-  } else {
-    res.status(404).json({ message: 'User not found' });
-  }
-});
-
 // @desc    Get user profile
 // @route   GET /api/users/me
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password');
+  const user = await User.findById(req.user.id);
   res.status(200).json(user);
 });
 
@@ -369,7 +246,6 @@ const addPullRequest = asyncHandler(async (req, res) => {
     res.status(404).json({ message: 'User not found' });
   }
 });
-
 
 // @desc    Remove a book from user's pull list
 // @route   POST /api/users/me/pull-drop
@@ -422,17 +298,17 @@ const getAllUsersPullList = asyncHandler(async (req, res) => {
       path: 'pullList.bookId',
       model: 'Book'
     })
-    .select('name pullList');
+    .select('email pullList');
 
   if (users) {
-    // flatten the array of pull lists 
+    // flatten the array of pull lists
     // into a single array of pull items
     // with user info for each item
     const allPulls = users.flatMap(user =>
       user.pullList.map(pull => ({
         ...pull.toObject(), // have to convert mongoose sub-document to object
         userId: user._id,
-        userName: user.name,
+        userEmail: user.email,
       }))
     );
     res.json(allPulls);
@@ -524,4 +400,4 @@ const getRecommendationTags = asyncHandler(async (req, res) => {
   res.json(uniqueTags);
 });
 
-module.exports = { registerUser, loginUser, verifyEmail, forgotPassword, resetPasswordWithToken, registerEmployee, getUsers, getUserById, updateUser, deleteUser, resetPassword, resetMyPassword, getMe, addPullRequest, dropPullRequest, getUserPullList, getAllUsersPullList, purchasePullRequest, markPullAsPulled, getRecommendationTags };
+module.exports = { registerUser, loginUser, verifyEmail, resendLoginLink, registerEmployee, getUsers, getUserById, updateUser, deleteUser, getMe, addPullRequest, dropPullRequest, getUserPullList, getAllUsersPullList, purchasePullRequest, markPullAsPulled, getRecommendationTags };

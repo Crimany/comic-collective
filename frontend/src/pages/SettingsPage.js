@@ -1,14 +1,13 @@
 import React from 'react';
 import CustomerLayout from '../components/CustomerLayout';
 import EmployeeLayout from '../components/EmployeeLayout';
-import global from '../styles/global.module.css';
 
 function SettingsPage() {
   const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
   const pageContent = (
     <div>
-      <p><a href="/resetpass" className={global.link}>Reset Password</a></p>
+      <p>This page intentionally left blank.</p>
     </div>
   );
 

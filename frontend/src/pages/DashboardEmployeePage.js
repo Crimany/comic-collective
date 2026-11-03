@@ -26,7 +26,6 @@ function DashboardEmployeePage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -37,7 +36,6 @@ function DashboardEmployeePage() {
           setLoading(false);
           return;
         }
-        setUserName(userInfo.name);
 
         const config = {
           headers: {
@@ -185,10 +183,8 @@ function DashboardEmployeePage() {
     return <EmployeeLayout title="Dashboard"><div className={global.loadingSpinner}></div></EmployeeLayout>;
   }
 
-  const dashboardTitle = userName ? `${userName.split(' ')[0]}'s Dashboard` : 'Dashboard';
-
   return (
-    <EmployeeLayout title={dashboardTitle}>
+    <EmployeeLayout title="Dashboard">
       {error && <p className={global.error}>{error}</p>}
       <div className={statCards.statsGrid}>
         <Link to="/inventory" className={statCards.statCard}><h2>{stats.releasesAll}</h2><p><strong>All Releases</strong><br />&nbsp;<br /><strong>Total Count of Releases</strong></p></Link>

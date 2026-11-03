@@ -55,9 +55,8 @@ NODE_ENV=development
 PORT -- port that the backend is running on
 MONGODB_URI -- connection string for MongoDB
 JWT_SECRET -- secret used to sign JWTs
-JWT_EXPIRES_IN -- expiration of active sessions
 GEMINI_API_KEY -- app key for Google Gemini AI
-GMAIL_USER -- login for GMail for sending registration and password reset emails
+GMAIL_USER -- login for GMail for sending sign-in link emails
 GMAIL_APP_PASSWORD -- password for GMail user above
 FRONTEND_URL -- URL of the frontend
 GOOGLE_APPLICATION_CREDENTIALS -- location of JSON file containing key used for Google Cloud Storage
@@ -91,13 +90,21 @@ The seeder file provides the ability to set up the first employee user in the da
 Once this user is created, all other users can be created using the UI once authenticated as the first user.\
 Be sure to sanitize the seeder script after use.
 
+### `node removeNamesAndPasswords.js`
+
+One-time cleanup that removes the `name` and `password` fields left over from password-based logins and lowercases all emails.
+
 ## API Endpoints
 
 The server exposes several RESTful endpoints. Here is a brief overview of the main routes:
 
 *   **Authentication**:
-    *   `POST /api/users/login`: Authenticate a user and get a token.
-    *   `POST /api/users`: Register a new user.
+    There are no passwords. Every sign-in emails a single-use link (valid for 24 hours); opening it starts a session on that browser that lasts 183 days or until the user logs out. A user may be signed in on any number of browsers at once.
+    *   `POST /api/users/register`: Register a new customer by email and send a sign-in link.
+    *   `POST /api/users/register-employee`: Register a new employee by email and send a sign-in link (employee only).
+    *   `POST /api/users/login`: Send a sign-in link to an existing user's email.
+    *   `POST /api/users/verify-email`: Exchange a sign-in link token for a session token.
+    *   `POST /api/users/:id/send-login-link`: Send a new sign-in link to a user (employee only).
 
 *   **Books (Inventory)**:
     *   `GET /api/books`: Get all books.

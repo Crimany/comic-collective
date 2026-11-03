@@ -13,7 +13,6 @@ function EmployeeEditPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
   });
   const [error, setError] = useState('');
@@ -30,7 +29,6 @@ function EmployeeEditPage() {
         };
         const { data } = await api.get(`/api/users/${id}`, config);
         setFormData({
-          name: data.name,
           email: data.email,
         });
       } catch (err) {
@@ -81,10 +79,6 @@ function EmployeeEditPage() {
             <div className={form.formContainer}>
               <form onSubmit={handleSubmit}>
                 <div className={form.formGrid}>
-                  <div className={form.formGroup}>
-                    <label htmlFor="name">Name*:</label>
-                    <input id="name" type="text" name="name" value={formData.name} onChange={onChange} required />
-                  </div>
                   <div className={form.formGroup}>
                     <label htmlFor="email">Email*:</label>
                     <input id="email" type="email" name="email" value={formData.email} onChange={onChange} required />
