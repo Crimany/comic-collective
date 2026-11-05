@@ -48,3 +48,13 @@
     margin-top: 1rem;
 }
  
+@media (max-width: 900px) {
+    .formContainer h1 {
+        font-size: 2rem;
+    }
+
+    /* 16px or larger stops iOS from zooming in when the field is tapped */
+    .formGroup input {
+        font-size: 16px;
+    }
+}

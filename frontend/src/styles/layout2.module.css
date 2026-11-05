@@ -71,3 +71,90 @@
   margin-bottom: 2rem;
 }
  
+/* Header with hamburger menu, only shown on small screens */
+.mobileHeader {
+  display: none;
+}
+
+.menuBackdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .pageContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .mobileHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: 60px;
+    padding: 0 1rem;
+    background-color: #c0c0c0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .headerLogo {
+    height: 44px;
+    width: auto;
+  }
+
+  .menuButton {
+    background: none;
+    border: none;
+    color: #004085;
+    font-size: 2rem;
+    line-height: 1;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+  }
+
+  /* the side menu becomes an overlay below the header */
+  .leftPanel {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    width: min(80%, 300px);
+    overflow-y: auto;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.25);
+  }
+
+  .leftPanelOpen {
+    display: flex;
+  }
+
+  .leftPanel .logo {
+    display: none;
+  }
+
+  .menuBackdrop {
+    display: block;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .rightPanel {
+    padding: 1rem;
+    overflow-y: visible;
+  }
+
+  .pageHeader {
+    font-size: 1.75rem;
+  }
+}

@@ -27,3 +27,27 @@
   align-items: center;
 }
  
+/* Small screens: small logo on top, form below it */
+@media (max-width: 900px) {
+  .pageContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .leftHalf {
+    flex: none;
+    padding: 1.5rem 1rem;
+  }
+
+  .logo {
+    max-width: 60%;
+    max-height: 120px;
+    width: auto;
+  }
+
+  .rightHalf {
+    align-items: flex-start;
+    padding: 2rem 1.5rem;
+  }
+}

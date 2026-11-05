@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:5001',
+  // relative URLs: in development the dev server's "proxy" setting forwards /api to the backend,
+  // so the app also works from other devices on the LAN
+  baseURL: '/',
 });
 
 // if the session is no longer valid, sign the user out so they can request a new link

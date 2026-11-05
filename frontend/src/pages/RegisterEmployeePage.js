@@ -33,7 +33,7 @@ function RegisterEmployeePage() {
 
   return (
     <EmployeeLayout title="Register a New Employee">
-      <div className={form.formContainer} style={{ width: '50%', margin: 'auto' }}>
+      <div className={form.formContainer} style={{ width: '100%', margin: 'auto' }}>
         {message && <p style={{ color: 'green' }}>{message}</p>}
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <form onSubmit={handleSubmit}>
