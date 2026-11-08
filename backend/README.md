@@ -57,6 +57,7 @@ MONGODB_URI -- connection string for MongoDB
 JWT_SECRET -- secret used to sign JWTs
 GEMINI_API_KEY -- app key for Google Gemini AI
 GMAIL_USER -- login for GMail for sending sign-in link emails
+EMAIL_FROM -- (optional) address emails are sent from, e.g. on another domain; must be a "Send mail as" address of GMAIL_USER
 GMAIL_APP_PASSWORD -- password for GMail user above
 FRONTEND_URL -- URL of the frontend
 GOOGLE_APPLICATION_CREDENTIALS -- location of JSON file containing key used for Google Cloud Storage

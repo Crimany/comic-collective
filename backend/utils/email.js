@@ -12,7 +12,8 @@ const sendEmail = async (options) => {
 
   // 2) Define the email options
   const mailOptions = {
-    from: 'Comic Collective <' + process.env.GMAIL_USER + '>',
+    // EMAIL_FROM must be a "Send mail as" address of GMAIL_USER, or Gmail replaces it with GMAIL_USER
+    from: 'Comic Collective <' + (process.env.EMAIL_FROM || process.env.GMAIL_USER) + '>',
     to: options.email,
     subject: options.subject,
     html: options.message,
