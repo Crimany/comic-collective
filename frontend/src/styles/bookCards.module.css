@@ -227,3 +227,38 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     display: block;
 }
+
+/* Small screens: cover art on top, book details below it */
+@media (max-width: 900px) {
+  .cardContainer {
+    padding: 1rem 0;
+  }
+
+  .bookCard {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+  }
+
+  .bookCardContent {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .coverArtSection {
+    flex: none;
+    align-self: center;
+    width: 200px;
+    max-width: 100%;
+  }
+
+  .filterControls {
+    flex-wrap: wrap;
+  }
+
+  .overlayImg {
+    height: auto;
+    max-height: 75vh;
+    max-width: 90vw;
+  }
+}
