@@ -255,10 +255,4 @@
   .filterControls {
     flex-wrap: wrap;
   }
-
-  .overlayImg {
-    height: auto;
-    max-height: 75vh;
-    max-width: 90vw;
-  }
 }

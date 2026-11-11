@@ -118,8 +118,9 @@ function InventoryPage() {
           'border-radius 0.4s ease'
         ].join(', ');
 
-        const finalH = window.innerHeight * 0.75;
+        // fit within 75% of the screen height and 90% of its width, keeping the cover's shape
         const ratio = overlayImg.naturalWidth / overlayImg.naturalHeight;
+        const finalH = Math.min(window.innerHeight * 0.75, (window.innerWidth * 0.9) / ratio);
         const finalW = finalH * ratio;
 
         overlayImg.style.height = finalH + 'px';
